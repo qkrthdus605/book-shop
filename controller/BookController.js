@@ -8,7 +8,8 @@ const allBooks = (req, res) => {
   // currentPage: 현재 몇 페이지인지
   // offset: limit * (currentPage-1)
   let offset = limit * (currentPage - 1);
-  let sql = "SELECT * FROM books";
+  let sql =
+    "SELECT *, (SELECT count(*) FROM likes WHERE books.id=liked_book_id) AS likes FROM books";
   let values = [];
 
   if (category_id && news) {
@@ -43,11 +44,17 @@ const allBooks = (req, res) => {
 const bookDetail = (req, res) => {
   // parseInt로 묶으면 int로 바뀌면서 json 형태가 x
   // 비구조화 불가능
-  let { id } = req.params;
+  let book_id = req.params.id;
+  let { user_id } = req.body;
 
-  let sql = `SELECT * FROM books LEFT JOIN category ON books.category_id = category.id WHERE books.id=?;`;
+  let sql = `SELECT *, 
+  (SELECT count(*) FROM likes WHERE liked_book_id=books.id) AS likes, 
+  (SELECT EXISTS (SELECT * FROM likes WHERE user_id=? AND liked_book_id=?)) AS liked 
+  FROM books LEFT JOIN category ON books.category_id = category.category_id WHERE books.id=?;`;
 
-  conn.query(sql, id, (err, results) => {
+  let values = [user_id, book_id, book_id];
+
+  conn.query(sql, values, (err, results) => {
     if (err) {
       console.log(err);
       return res.status(StatusCodes.BAD_REQUEST).end();
