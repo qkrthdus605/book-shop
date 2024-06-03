@@ -15,7 +15,7 @@ const join = (req, res) => {
     .pbkdf2Sync(password, salt, 10000, 10, "sha512")
     .toString("base64");
 
-  let sql = "INSERT INTO users (email, password) VALUES (?, ?)";
+  let sql = "INSERT INTO users (email, password, salt) VALUES (?, ?, ?)";
   let values = [email, hashPassword, salt];
 
   conn.query(sql, values, (err, result) => {
@@ -49,6 +49,7 @@ const login = (req, res) => {
     if (loginUser && loginUser.password == hashPassword) {
       const token = jwt.sign(
         {
+          id: loginUser.id,
           email: loginUser.email,
         },
         process.env.SECRET_KEY,
