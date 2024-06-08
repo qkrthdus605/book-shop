@@ -1,9 +1,7 @@
 const jwt = require("jsonwebtoken");
 const conn = require("../mariadb");
 const { StatusCodes } = require("http-status-codes");
-const dotenv = require("dotenv");
-
-dotenv.config();
+const ensureAuthorization = require("../auth"); // 인증 모듈
 
 const addLike = (req, res) => {
   const book_id = req.params.id;
@@ -59,19 +57,5 @@ const removeLike = (req, res) => {
     });
   }
 };
-
-// jwt 토큰 꺼내서 복호화 시켜주는 함수
-function ensureAuthorization(req) {
-  try {
-    let receivedJwt = req.headers["authorization"];
-    let decodedJwt = jwt.verify(receivedJwt, process.env.SECRET_KEY);
-    return decodedJwt;
-  } catch (err) {
-    console.log(err.name);
-    console.log(err.message);
-
-    return err;
-  }
-}
 
 module.exports = { addLike, removeLike };
